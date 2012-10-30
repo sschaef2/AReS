@@ -1,0 +1,2 @@
+serviceClass: ares.client.GreetingService
+path: 80E681EE6493D1448EF6E01B79EA6DAC.gwt.rpc
