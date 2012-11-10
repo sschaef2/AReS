@@ -2,13 +2,23 @@
 
   <!-- Servlets -->
   <servlet>
-    <servlet-name>UserInfoServiceImpl</servlet-name>
+    <servlet-name>UserInfoService</servlet-name>
     <servlet-class>ares.server.UserInfoServiceImpl</servlet-class>
   </servlet>
   
+  <servlet>
+  	<servlet-name>flightService</servlet-name>
+  	<servlet-class>ares.server.FlightServiceImpl</servlet-class>
+  </servlet>
+  
   <servlet-mapping>
-    <servlet-name>UserInfoServiceImpl</servlet-name>
+    <servlet-name>UserInfoService</servlet-name>
     <url-pattern>/ares/userInfo</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+  	<servlet-name>flightService</servlet-name>
+    <url-pattern>/ares/flight</url-pattern>
   </servlet-mapping>
   
   <!-- Default page to serve -->
