@@ -1,0 +1,2 @@
+serviceClass: ares.client.FlightService
+path: 0E7F765FE75B0CA89F98CED6FEDAED14.gwt.rpc

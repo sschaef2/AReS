@@ -50,7 +50,7 @@ public class AReS implements EntryPoint {
 	 * returns an error.
 	 */
 	@SuppressWarnings("unused")
-	private static final String SERVER_ERROR = "An error occurred while "
+	private static final String SERVER_ERx	ROR = "An error occurred while "
 			+ "attempting to contact the server. Please check your network "
 			+ "connection and try again.";
 
