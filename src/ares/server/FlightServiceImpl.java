@@ -14,81 +14,143 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import ares.client.FlightService;
 import ares.shared.Flight;
 
+@SuppressWarnings("serial")
 public class FlightServiceImpl extends RemoteServiceServlet implements
 FlightService {
 
 	private static final Logger LOG = Logger.getLogger(FlightServiceImpl.class.getName());
 	private static final PersistenceManagerFactory PMF =
-	      JDOHelper.getPersistenceManagerFactory("transactions-optional");
+			JDOHelper.getPersistenceManagerFactory("transactions-optional");
 
-	  public void addFlight(Flight flight) {
-	    PersistenceManager pm = getPersistenceManager();
-	    try {
-	      pm.makePersistent(flight);
-	    } finally {
-	      pm.close();
-	    }
-	  }
-
-	  public void removeFlight(Flight flight) {
-		  PersistenceManager pm = getPersistenceManager();
-		  try {
-			  long deleteCount = 0;
-			  Query q = pm.newQuery(Flight.class);
-	      List<Flight> flights = (List<Flight>) q.execute();
-	      for (Flight testFlight : flights) {
-	        if (flight.equals(testFlight)) {
-	          deleteCount++;
-	          pm.deletePersistent(flight);
-	        }
-	      }
-	      if (deleteCount != 1) {
-	        LOG.log(Level.WARNING, "removeStock deleted "+deleteCount+" Stocks");
-	      }
-	    } finally {
-	      pm.close();
-	    }
-	  }
-
-	  @SuppressWarnings("unchecked")
-	public List<Flight> getFlights() 
-	  {
+	public void addFlight(Flight flight) {
 		PersistenceManager pm = getPersistenceManager();
-	    List<Flight> flights = null;
-	    try 
-	    {
-	      Query q = pm.newQuery(Flight.class);
-	      List<Flight> results = (List<Flight>) q.execute();
-	      
-	      flights = new ArrayList<Flight>();
-	      for (Flight f : results)
-	      {
-	    	  f.getLocation();
-	    	  flights.add(f);
-	      }
-	    } 
-	    finally 
-	    {
-	      pm.close();
-	    }
-	    return flights;
-	  }
-	  
-	  public List<Flight> getFlights(String type){
-		  PersistenceManager pm = getPersistenceManager();
-		    List<Flight> flights = null;
-		    try {
-			      Query q = pm.newQuery(Flight.class, "type == t");
-			      q.declareParameters("String t");
-			      flights = (List<Flight>) q.execute(type);
-			    } finally {
-			      pm.close();
-			    }
-			    return flights;
-	  }
-
-	  private PersistenceManager getPersistenceManager() {
-	    return PMF.getPersistenceManager();
-	  }
+		try {
+			pm.makePersistent(flight);
+		} finally {
+			pm.close();
+		}
 	}
+
+	@SuppressWarnings("unchecked")
+	public void removeFlight(Flight flight) 
+	{
+		PersistenceManager pm = getPersistenceManager();
+		try 
+		{
+			long deleteCount = 0;
+			Query q = pm.newQuery(Flight.class);
+			List<Flight> flights = (List<Flight>) q.execute();
+			for (Flight testFlight : flights) 
+			{
+				if (flight.equals(testFlight)) 
+				{
+					deleteCount++;
+					pm.deletePersistent(testFlight);
+				}
+			}
+			if (deleteCount != 1) 
+			{
+				LOG.log(Level.WARNING, "removeFlight deleted "+deleteCount+" Flights");
+			}
+		} 
+		finally 
+		{
+			pm.close();
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Flight> getFlights() 
+	{
+		PersistenceManager pm = getPersistenceManager();
+		List<Flight> flights = null;
+		try 
+		{
+			Query q = pm.newQuery(Flight.class);
+			List<Flight> results = (List<Flight>) q.execute();
+
+			flights = new ArrayList<Flight>();
+			for (Flight f : results)
+			{
+				f.getLocation();
+				flights.add(f);
+			}
+		} 
+		finally 
+		{
+			pm.close();
+		}
+		return flights;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<String> getLocations()
+	{
+		PersistenceManager pm = getPersistenceManager();
+		List<String> locations = new ArrayList<String>();
+		try 
+		{
+			Query q = pm.newQuery(Flight.class);
+			List<Flight> flights = (List<Flight>) q.execute();
+
+			if (! flights.isEmpty())
+			{
+				for (Flight flight : flights) 
+				{
+					if (locations.isEmpty() || (! locations.contains(flight.getLocation())))
+						locations.add(flight.getLocation());
+				}
+			}
+		}
+		finally 
+		{
+			pm.close();
+		}
+		return locations;  
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<String> getDestinations()
+	{
+		PersistenceManager pm = getPersistenceManager();
+		List<String> destinations = new ArrayList<String>();
+		try 
+		{
+			Query q = pm.newQuery(Flight.class);
+			List<Flight> flights = (List<Flight>) q.execute();
+
+			if (! flights.isEmpty())
+			{
+				for (Flight flight : flights) 
+				{
+					if (destinations.isEmpty() || (! destinations.contains(flight.getDestination())))
+						destinations.add(flight.getDestination());
+				}
+			}
+		}
+		finally 
+		{
+			pm.close();
+		}
+		return destinations;  
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Flight> getFlights(String type){
+		PersistenceManager pm = getPersistenceManager();
+		List<Flight> flights = null;
+		try {
+			Query q = pm.newQuery(Flight.class, "type == t");
+			q.declareParameters("String t");
+			flights = (List<Flight>) q.execute(type);
+		} finally {
+			pm.close();
+		}
+		return flights;
+	}
+
+	private PersistenceManager getPersistenceManager() {
+		return PMF.getPersistenceManager();
+	}
+}
 

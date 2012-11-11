@@ -89,4 +89,13 @@ public class Flight implements Serializable
   public void setType(String type) {
 	  this.type = type;
   }
+  
+  public boolean equals(Flight testFlight)
+  {
+	  if (this.location.equals(testFlight.getLocation()) && this.destination.equals(testFlight.getDestination())
+			  && this.price == testFlight.getPrice() && this.time.equals(testFlight.getTime()) 
+			  && this.seatClass.equals(testFlight.getSeatClass()) && this.type.equals(testFlight.getType()))
+		  return true;
+	  return false;
+  }
 }
