@@ -1,2 +1,0 @@
-serviceClass: ares.client.UserInfoService
-path: 67F1AFC7F3FDBE2503EE9ED48EB94A8D.gwt.rpc

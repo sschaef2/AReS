@@ -13,5 +13,6 @@ public interface FlightServiceAsync {
 	public void getFlights(AsyncCallback<List<Flight>> async);
 	public void getLocations(AsyncCallback<List<String>> async);
 	public void getDestinations(AsyncCallback<List<String>> async);
-	public void getFlights(String type, AsyncCallback<List<Flight>> async);
+	public void getFlights(String location, String destination, String seatClass, 
+			AsyncCallback<List<Flight>> async);
 }

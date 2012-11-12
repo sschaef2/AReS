@@ -1,13 +1,17 @@
 /** Add css rules here for your application. */
 
-
-/** Example rules used by the template application (remove for your app) */
 h1 {
   font-size: 2em;
   font-weight: bold;
   color: #777777;
-  margin: 40px 0px 70px;
+  /*margin: 40px 0px 70px;*/
   text-align: center;
+}
+
+img {
+	display: block;
+    margin-left: auto;
+    margin-right: auto 
 }
 
 .sendButton {
@@ -20,6 +24,30 @@ h1 {
   width: 400px;
 }
 
+.gwt-TextBox {
+	height: 12px;
+    padding: 5px 4px;
+    border-right: 1px solid rgb(204, 204, 204);
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(153, 153, 153) rgb(204, 204, 204) rgb(204, 204, 204);
+    -moz-border-top-colors: none;
+    -moz-border-right-colors: none;
+    -moz-border-bottom-colors: none;
+    -moz-border-left-colors: none;
+    border-image: none;
+    font-size: small;
+    font-family: Arial Unicode MS,Arial,sans-serif;
+}
+
+.gwt-Label {
+	font-size: 16px;
+	font-weight: none;
+	letter-spacing:0.2px;
+    font-family: Arial Unicode MS,Arial,sans-serifl;
+    padding-right: 5px;
+}
+
 .dialogVPanel {
   margin: 5px;
 }
@@ -30,7 +58,7 @@ body {
   padding: 10px;
 }
 
-/* stock list header row */
+/* flight list header row */
 .flightListHeader {
   background-color: #2062B8;
   color: white;
@@ -42,6 +70,10 @@ body {
   border: 1px solid silver;
   padding: 2px;
   margin-bottom:6px;
+}
+
+.searchLabels {
+	padding-top: 10px;
 }
 
 .serverResponseLabelError {

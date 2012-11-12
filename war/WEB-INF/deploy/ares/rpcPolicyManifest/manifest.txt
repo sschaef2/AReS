@@ -1,4 +1,4 @@
 # Module ares
 # RPC service class, partial path of RPC policy file
-ares.client.UserInfoService, 67F1AFC7F3FDBE2503EE9ED48EB94A8D.gwt.rpc
+ares.client.UserInfoService, F9D29E3CBDBFD3D11748321AE9C6443B.gwt.rpc
 ares.client.FlightService, B06673352CE43F5BCC05D9E26F49D1A2.gwt.rpc

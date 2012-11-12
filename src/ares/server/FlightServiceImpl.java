@@ -134,15 +134,23 @@ FlightService {
 		}
 		return destinations;  
 	}
-
+	
 	@SuppressWarnings("unchecked")
-	public List<Flight> getFlights(String type){
+	public List<Flight> getFlights(String location, String destination, String seatClass)
+	{
 		PersistenceManager pm = getPersistenceManager();
-		List<Flight> flights = null;
+		List<Flight> flights = new ArrayList<Flight>();
 		try {
-			Query q = pm.newQuery(Flight.class, "type == t");
-			q.declareParameters("String t");
-			flights = (List<Flight>) q.execute(type);
+			Query q = pm.newQuery(Flight.class, "location == loc && destination == dest " +
+					"&& seatClass == sc");
+			q.declareParameters("String loc, String dest, String sc");
+			List<Flight> results = (List<Flight>) q.execute(location, destination, seatClass);
+			for (Flight f : results) 
+			{
+				f.getLocation();
+				flights.add(f);
+			}
+			
 		} finally {
 			pm.close();
 		}

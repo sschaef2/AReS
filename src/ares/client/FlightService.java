@@ -15,5 +15,5 @@ public interface FlightService extends RemoteService {
 	public List<Flight> getFlights();
 	public List<String> getLocations();
 	public List<String> getDestinations();
-	public List<Flight> getFlights(String type);
+	public List<Flight> getFlights(String location, String destination, String seatClass);
 }

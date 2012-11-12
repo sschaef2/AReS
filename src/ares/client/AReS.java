@@ -1,29 +1,10 @@
 package ares.client;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Properties;
-
-/*
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
- */
-
 import ares.shared.Flight;
 import ares.shared.UserInfo;
-/*
-import com.google.appengine.api.mail.MailService;
-import com.google.appengine.api.mail.MailServiceFactory;
- */
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -42,7 +23,7 @@ import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
-import com.ibm.icu.text.SimpleDateFormat;
+import com.google.gwt.user.datepicker.client.DateBox;
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
@@ -73,7 +54,6 @@ public class AReS implements EntryPoint {
 	private TextBox fromInputBox = new TextBox();
 	private TextBox priceInputBox = new TextBox();
 	private TextBox timeInputBox = new TextBox();
-	private TextBox dateBox = new TextBox();
 	private ListBox classComboBox = new ListBox();
 	private ListBox typeComboBox = new ListBox();
 	private ListBox fromListBox = new ListBox();
@@ -81,11 +61,14 @@ public class AReS implements EntryPoint {
 	private ListBox adultsListBox = new ListBox();
 	private ListBox childrenListBox = new ListBox();
 	private Button addFlightButton = new Button("Add");
+	@SuppressWarnings("deprecation")
+	DateTimeFormat dateFormat = DateTimeFormat.getShortDateFormat();
+    DateBox dateBox = new DateBox();
 
-	private Label toLabel = new Label("To");
-	private Label fromLabel = new Label("From");
-	private Label priceLabel = new Label("Price");
-	private Label timeLabel = new Label("Time");
+	private Label toLabel = new Label("To:");
+	private Label fromLabel = new Label("From:");
+	private Label priceLabel = new Label("Price:");
+	private Label timeLabel = new Label("Time:");
 	private ArrayList<Flight> flights = new ArrayList<Flight>();
 
 
@@ -113,7 +96,7 @@ public class AReS implements EntryPoint {
 					// Remember to add email addresses for Aya & Leslie
 					if (userInfo.getEmailAddress() == "sean.schaefer2@gmail.com"
 							|| userInfo.getEmailAddress() == "agvilla3@asu.edu" 
-							|| userInfo.getEmailAddress() == "tltang2@asu.edu")
+							|| userInfo.getEmailAddress() == "tltang1@asu.edu")
 						loadAresAdmin();
 					else
 						loadAresSearch();
@@ -189,7 +172,9 @@ public class AReS implements EntryPoint {
 		HorizontalPanel passengerPanel = new HorizontalPanel();
 
 		Label flightLabel = new Label("Flight Details");
+		flightLabel.addStyleName("searchLabels");
 		Label passengerLabel = new Label("Passenger Details");
+		passengerLabel.addStyleName("searchLabels");
 		Label dateLabel = new Label("Date:");
 		Label adultsLabel = new Label("Adults (12+):");
 		Label childrenLabel = new Label("Children (2-11):");
@@ -228,6 +213,20 @@ public class AReS implements EntryPoint {
 
 		for (int i = 0; i <= 4; i++)
 			childrenListBox.addItem(Integer.toString(i));
+		
+		flightsTable.setText(0, 0, "From");
+		flightsTable.setText(0, 1, "To");
+		flightsTable.setText(0, 2, "Price");
+		flightsTable.setText(0, 3, "Time");
+		flightsTable.setText(0, 4, "Class");
+		flightsTable.setText(0, 5, "Type");
+		flightsTable.setText(0, 6, "Reserve");
+		flightsTable.getRowFormatter().addStyleName(0, "flightListHeader");
+		flightsTable.addStyleName("watchList");
+		flightsTable.setVisible(false);
+		
+		// Set the value in the text box when the user selects a date
+		dateBox.setFormat(new DateBox.DefaultFormat(dateFormat));
 
 		flightPanel.add(fromLabel);
 		flightPanel.add(fromListBox);
@@ -248,7 +247,8 @@ public class AReS implements EntryPoint {
 		fullPanel.add(passengerLabel);
 		fullPanel.add(passengerPanel);
 		fullPanel.add(findButton);
-
+		fullPanel.add(flightsTable);
+		
 		RootPanel.get("flightList").add(fullPanel);
 		findButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
@@ -306,9 +306,27 @@ public class AReS implements EntryPoint {
 
 	private void findFlight()
 	{
-		//TODO
-		//Implement
+		//Get parameters from GUI elements
+		String location = fromListBox.getItemText(fromListBox.getSelectedIndex());
+		String destination = toListBox.getItemText(toListBox.getSelectedIndex());
+		String seatClass = classComboBox.getItemText(classComboBox.getSelectedIndex());
+		
+		
+		//Call getFlights
+		flightService.getFlights(location, destination, seatClass, new AsyncCallback<List<Flight>>() {
+			public void onFailure(Throwable error) 
+			{
+				handleError(error);
+			}
+			
+			public void onSuccess(List<Flight> flights)
+			{
+				displayFlights(flights, false, true);
+				flightsTable.setVisible(true);
+			}
+		});		
 	}
+	
 	/**
 	 * Adds a flight to the table and to the datastore. 
 	 */
@@ -363,7 +381,7 @@ public class AReS implements EntryPoint {
 				handleError(error);
 			}
 			public void onSuccess(Void ignore) {
-				displayFlight(flight, true);
+				displayFlight(flight, true, false);
 			}
 		});
 	}
@@ -377,19 +395,19 @@ public class AReS implements EntryPoint {
 			public void onSuccess(List<Flight> flights) {
 				if (flights.isEmpty())
 					Window.alert("All flights are empty");
-				displayFlights(flights, isAdmin);
+				displayFlights(flights, isAdmin, false);
 			}
 		});
 	}
 
-	private void displayFlights(List<Flight> flights, boolean isAdmin)
+	private void displayFlights(List<Flight> flights, boolean isAdmin, boolean isSearch)
 	{
 		for (Flight flight : flights) {
-			displayFlight(flight, isAdmin);
+			displayFlight(flight, isAdmin, isSearch);
 		}	
 	}
 
-	private void displayFlight(final Flight flight, boolean isAdmin){
+	private void displayFlight(final Flight flight, boolean isAdmin, boolean isSearch){
 		int row = flightsTable.getRowCount();
 		flights.add(flight);
 
@@ -411,6 +429,24 @@ public class AReS implements EntryPoint {
 			});
 			flightsTable.setWidget(row, 6, removeFlightButton);	
 		}
+		
+		// Add a button to book this flight if search
+		if (isSearch)
+		{
+			Button bookButton = new Button("Book");
+			bookButton.addClickHandler(new ClickHandler() {
+				public void onClick(ClickEvent event) {
+					if (Window.confirm("Are you sure you wish to book this flight? Press OK to book."))
+						try {
+							displayTicketInformation(flight);
+						} catch (UnsupportedEncodingException e) {
+							handleError(e);
+							e.printStackTrace();
+						}
+				}
+			});
+			flightsTable.setWidget(row, 6, bookButton);
+		}
 	}
 
 	private void removeFlight(final Flight flight) {
@@ -430,137 +466,85 @@ public class AReS implements EntryPoint {
 		flightsTable.removeRow(removedIndex+1);
 	}
 
-	/**
-	 * Sends confirmation of the user's booked ticket to their logged in Gmail address. 
-	 * @throws UnsupportedEncodingException 
-	 */
-	private void sendTicketConfirmation(String flightTo, String flightFrom, String flightPrice, String flightTime,
-			String flightClass, String flightType) throws UnsupportedEncodingException
-			{
-		/*
-        Session session = Session.getDefaultInstance(props, null);
-
-        String msgBody = "Thank you for booking your flight with AReS. Please see ticket information below:"
-        		+ "\n\nFrom: " + flightFrom + "\nTo: " + flightTo + "\nTime: " + flightTime + "\nPrice: "
-        		+ flightPrice + "\nClass: " + flightClass + "\nType: " + flightType + 
-        		"\n\nIf you have any questions about your reservation, please feel free to "
-        		+ "contact us at sschaef2@asu.edu.";
-
-        try {
-            Message msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress("sschaef2@asu.edu", "AReS Admin"));
-            msg.addRecipient(Message.RecipientType.TO,
-                             new InternetAddress(userInfo.getEmailAddress(), 
-                            		 userInfo.getNickname()));
-            msg.setSubject("Your Ticket Information with AReS");
-            msg.setText(msgBody);
-            Transport.send(msg);
-
-        } catch (AddressException e) {
-        	handleError(e);
-        } catch (MessagingException e) {
-        	handleError(e);
-        }
-
-		String msgBody = "Thank you for booking your flight with AReS. Please see ticket information below:"
-        		+ "\n\nFrom: " + flightFrom + "\nTo: " + flightTo + "\nTime: " + flightTime + "\nPrice: "
-        		+ flightPrice + "\nClass: " + flightClass + "\nType: " + flightType + 
-        		"\n\nIf you have any questions about your reservation, please feel free to "
-        		+ "contact us at sschaef2@asu.edu.";
-
-			MailService service = MailServiceFactory.getMailService();
-			MailService.Message msg = new MailService.Message();
-
-	        msg.setSender("sschaef2@asu.edu");
-	        msg.setTo(userInfo.getEmailAddress());
-
-	        msg.setSubject("Your Ticket Information with AReS");
-	        msg.setTextBody(msgBody);
-
-	        try {
-	            service.send(msg);
-	        } catch (IOException e) {
-	            handleError(e);
-	            e.printStackTrace();
-	        }
-		 */
-			}
-
-	/**
-	 * Sends confirmation of cancellation of a ticket to the user's Gmail address.
-	 * @throws UnsupportedEncodingException
-	 */
-	private void sendCancelConfirmation(String flightTo, String flightFrom, String flightPrice, String flightTime,
-			String flightClass, String flightType) throws UnsupportedEncodingException
-			{
-		/*Properties props = new Properties();
-        Session session = Session.getDefaultInstance(props, null);
-
-        String msgBody = "Your flight with AReS has been cancelled, as detailed below:" + 
-        		"\n\nFrom: " + flightFrom + "\nTo: " + flightTo + "\nTime: " + flightTime + "\nPrice: "
-        		+ flightPrice + "\nClass: " + flightClass + "\nType: " + flightType + 
-        		"\n\nIf you have any questions about your cancellation, please feel free to "
-        		+ "contact us at sschaef2@asu.edu.";
-
-        try {
-            Message msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress("sschaef2@asu.edu", "AReS Admin"));
-            msg.addRecipient(Message.RecipientType.TO,
-                             new InternetAddress(userInfo.getEmailAddress(), 
-                            		 userInfo.getNickname()));
-            msg.setSubject("Your Ticket Cancellation with AReS");
-            msg.setText(msgBody);
-            Transport.send(msg);
-
-        } catch (AddressException e) {
-        	handleError(e);
-        } catch (MessagingException e) {
-        	handleError(e);
-        }
-
-
-		 String msgBody = "Your flight with AReS has been cancelled, as detailed below:" + 
-	        		"\n\nFrom: " + flightFrom + "\nTo: " + flightTo + "\nTime: " + flightTime + "\nPrice: "
-	        		+ flightPrice + "\nClass: " + flightClass + "\nType: " + flightType + 
-	        		"\n\nIf you have any questions about your cancellation, please feel free to "
-	        		+ "contact us at sschaef2@asu.edu.";
-
-		MailService service = MailServiceFactory.getMailService();
-		MailService.Message msg = new MailService.Message();
-
-        msg.setSender("sschaef2@asu.edu");
-        msg.setTo(userInfo.getEmailAddress());
-
-        msg.setSubject("Your Ticket Cancellation with AReS");
-        msg.setTextBody(msgBody);
-
-        try {
-            service.send(msg);
-        } catch (IOException e) {
-            handleError(e);
-            e.printStackTrace();
-        }
-		 */
-			}
-
-	private void displayTicketInformation(String flightTo, String flightFrom, String flightPrice, String flightTime,
-			String flightClass, String flightType)
+	private void displayTicketInformation(final Flight flight) throws UnsupportedEncodingException
 	{
 		final DialogBox dialogBox = new DialogBox();
 		dialogBox.setText("Your Ticket Information");
 		dialogBox.setAnimationEnabled(true);
 		final Button closeButton = new Button("Close");
+		final Button cancelButton = new Button("Unbook");
 		closeButton.getElement().setId("closeButton");
+		cancelButton.getElement().setId("cancelButton");
 
-		// TODO: 
-		// Finish method
 		VerticalPanel dialogVPanel = new VerticalPanel();
-
+		dialogVPanel.addStyleName("dialogVPanel");
+		dialogVPanel.add(new HTML("<p>Thank you for booking your flight with AReS. " +
+				"Please see ticket information below:</p>" +
+				"<b> From: </b>" + flight.getLocation() + "<br><b> To: </b>" + 
+				flight.getDestination() + "<br><b> Time: </b>" + flight.getTime() +
+				"<br><b> Price: </b>" + flight.getPrice() + "<br><b> Class: </b>" + 
+				flight.getSeatClass() + "<br><b> Date: </b>" + dateBox.getValue() + 
+				"<br><b> Adults: </b>" + adultsListBox.getItemText(adultsListBox.getSelectedIndex()) 
+				+ "<br><b> Children: </b>" + childrenListBox.getItemText(childrenListBox.getSelectedIndex())
+				+ "<p> We hope you enjoy your trip!</p>"));
+		
+		dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_LEFT);
+		dialogVPanel.add(cancelButton);
+		dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
+		dialogVPanel.add(closeButton);
+		dialogBox.setWidget(dialogVPanel);
+		
+		// Add a handler to close the DialogBox
+		closeButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+						dialogBox.hide();
+				}
+			});
+		
+		// Add a handler to cancel the ticket
+		cancelButton.addClickHandler(new ClickHandler() {
+			public void onClick(ClickEvent event) {
+				if (Window.confirm("Are you sure you want to cancel? Press OK to cancel."))
+				{
+					UserInfoServiceAsync userService = GWT.create(UserInfoService.class);
+					userService.sendCancelConfirmation(flight, dateBox.getValue().toString(), 
+							adultsListBox.getItemText(adultsListBox.getSelectedIndex()), 
+							childrenListBox.getItemText(childrenListBox.getSelectedIndex()),
+							userInfo.getEmailAddress(), userInfo.getNickname(), 
+							new AsyncCallback<Void>() {
+								public void onFailure(Throwable error) {
+									handleError(error);
+								}
+								
+								public void onSuccess(Void result) {
+								}
+							});
+					Window.alert("Your flight has been cancelled.");
+					dialogBox.hide();
+				}
+			}
+		});
+		
+		//show the Dialog Box
+		dialogBox.center();
+		
+		UserInfoServiceAsync userService = GWT.create(UserInfoService.class);
+		userService.sendTicketConfirmation(flight, dateBox.getValue().toString(), 
+				adultsListBox.getItemText(adultsListBox.getSelectedIndex()), 
+				childrenListBox.getItemText(childrenListBox.getSelectedIndex()),
+				userInfo.getEmailAddress(), userInfo.getNickname(), 
+				new AsyncCallback<Void>() {
+					public void onFailure(Throwable error) {
+						handleError(error);
+					}
+					
+					public void onSuccess(Void result) {
+					}
+				});
 	}
 
 	private void handleError(Throwable error) 
 	{
 		Window.alert(error.getMessage());
-
 	}
 }
