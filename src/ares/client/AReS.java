@@ -2,6 +2,7 @@ package ares.client;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import ares.shared.Flight;
 import ares.shared.UserInfo;
@@ -50,6 +51,7 @@ public class AReS implements EntryPoint {
 	private VerticalPanel mainPanel = new VerticalPanel();
 	private FlexTable flightsTable = new FlexTable();
 	private HorizontalPanel addPanel = new HorizontalPanel();
+	private VerticalPanel fullPanel = new VerticalPanel();
 	private TextBox toInputBox = new TextBox();
 	private TextBox fromInputBox = new TextBox();
 	private TextBox priceInputBox = new TextBox();
@@ -61,8 +63,7 @@ public class AReS implements EntryPoint {
 	private ListBox adultsListBox = new ListBox();
 	private ListBox childrenListBox = new ListBox();
 	private Button addFlightButton = new Button("Add");
-	@SuppressWarnings("deprecation")
-	DateTimeFormat dateFormat = DateTimeFormat.getShortDateFormat();
+	DateTimeFormat dateFormat = DateTimeFormat.getFormat("MM/dd/yyyy");
     DateBox dateBox = new DateBox();
 
 	private Label toLabel = new Label("To:");
@@ -116,16 +117,8 @@ public class AReS implements EntryPoint {
 	 */
 	private void loadAresAdmin()
 	{	
-		flightsTable.setText(0, 0, "From");
-		flightsTable.setText(0, 1, "To");
-		flightsTable.setText(0, 2, "Price");
-		flightsTable.setText(0, 3, "Time");
-		flightsTable.setText(0, 4, "Class");
-		flightsTable.setText(0, 5, "Type");
+		setupFlightsTable();
 		flightsTable.setText(0, 6, "Remove");
-		flightsTable.getRowFormatter().addStyleName(0, "flightListHeader");
-		flightsTable.addStyleName("watchList");
-
 		loadFlights(true);
 
 		classComboBox.addItem("Economy");
@@ -167,19 +160,23 @@ public class AReS implements EntryPoint {
 	 */
 	private void loadAresSearch() 
 	{
-		VerticalPanel fullPanel = new VerticalPanel();
 		HorizontalPanel flightPanel = new HorizontalPanel();
 		HorizontalPanel passengerPanel = new HorizontalPanel();
 
 		Label flightLabel = new Label("Flight Details");
-		flightLabel.addStyleName("searchLabels");
+		flightLabel.addStyleName("searchHeader");
 		Label passengerLabel = new Label("Passenger Details");
-		passengerLabel.addStyleName("searchLabels");
+		passengerLabel.addStyleName("searchHeader");
 		Label dateLabel = new Label("Date:");
+		dateLabel.addStyleName("searchLabel");
 		Label adultsLabel = new Label("Adults (12+):");
 		Label childrenLabel = new Label("Children (2-11):");
+		childrenLabel.addStyleName("searchLabel");
 		Label classLabel = new Label("Class:");
+		classLabel.addStyleName("searchLabel");
+		toLabel.addStyleName("searchLabel");
 		Button findButton = new Button("Find Flight");
+		findButton.addStyleName("findButton");
 
 		flightService.getLocations(new AsyncCallback<List<String>>() {
 			public void onFailure(Throwable error) {
@@ -207,6 +204,7 @@ public class AReS implements EntryPoint {
 
 		classComboBox.addItem("Economy");
 		classComboBox.addItem("Business");
+		classComboBox.addItem("");
 
 		for (int i = 1; i <= 6; i++)
 			adultsListBox.addItem(Integer.toString(i));
@@ -214,16 +212,7 @@ public class AReS implements EntryPoint {
 		for (int i = 0; i <= 4; i++)
 			childrenListBox.addItem(Integer.toString(i));
 		
-		flightsTable.setText(0, 0, "From");
-		flightsTable.setText(0, 1, "To");
-		flightsTable.setText(0, 2, "Price");
-		flightsTable.setText(0, 3, "Time");
-		flightsTable.setText(0, 4, "Class");
-		flightsTable.setText(0, 5, "Type");
-		flightsTable.setText(0, 6, "Reserve");
-		flightsTable.getRowFormatter().addStyleName(0, "flightListHeader");
-		flightsTable.addStyleName("watchList");
-		flightsTable.setVisible(false);
+		setupFlightsSearchTable();
 		
 		// Set the value in the text box when the user selects a date
 		dateBox.setFormat(new DateBox.DefaultFormat(dateFormat));
@@ -251,7 +240,7 @@ public class AReS implements EntryPoint {
 		
 		RootPanel.get("flightList").add(fullPanel);
 		findButton.addClickHandler(new ClickHandler() {
-			public void onClick(ClickEvent event) {
+			public void onClick(ClickEvent event) {				
 				findFlight();
 			}
 		});
@@ -275,6 +264,7 @@ public class AReS implements EntryPoint {
 		VerticalPanel fullPanel = new VerticalPanel();
 
 		Label helpLabel = new Label("Need help?");
+		helpLabel.addStyleName("helpLabel");
 		helpLabel.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
 				Window.alert("If you need help, please email AReS support at sschaef2@asu.edu"
@@ -283,20 +273,14 @@ public class AReS implements EntryPoint {
 		});
 
 		Label flightsLabel = new Label("Available Flights");
+		flightsLabel.addStyleName("availLabel");
 
 		topPanel.add(loginPanel);
 		topPanel.add(helpLabel);
 		fullPanel.add(topPanel);
 		fullPanel.add(flightsLabel);
 
-		flightsTable.setText(0, 0, "From");
-		flightsTable.setText(0, 1, "To");
-		flightsTable.setText(0, 2, "Price");
-		flightsTable.setText(0, 3, "Time");
-		flightsTable.setText(0, 4, "Class");
-		flightsTable.setText(0, 5, "Type");
-		flightsTable.getRowFormatter().addStyleName(0, "flightListHeader");
-		flightsTable.addStyleName("watchList");
+		setupFlightsTable();
 
 		loadFlights(false);
 		fullPanel.add(flightsTable);
@@ -306,13 +290,28 @@ public class AReS implements EntryPoint {
 
 	private void findFlight()
 	{
+		// Clear the flightsTable if populated
+		if (flightsTable.getRowCount() > 1)
+		{
+			fullPanel.remove(flightsTable);
+			flightsTable = new FlexTable();
+			setupFlightsSearchTable();
+			fullPanel.add(flightsTable);
+		}
+		
 		//Get parameters from GUI elements
 		String location = fromListBox.getItemText(fromListBox.getSelectedIndex());
 		String destination = toListBox.getItemText(toListBox.getSelectedIndex());
 		String seatClass = classComboBox.getItemText(classComboBox.getSelectedIndex());
 		
+		Date date = dateBox.getValue();
+		if (date == null)
+		{
+			Window.alert("You did not enter a valid date. Please try again");
+			return;
+		}
 		
-		//Call getFlights
+		//Call getFlights	
 		flightService.getFlights(location, destination, seatClass, new AsyncCallback<List<Flight>>() {
 			public void onFailure(Throwable error) 
 			{
@@ -504,7 +503,7 @@ public class AReS implements EntryPoint {
 		// Add a handler to cancel the ticket
 		cancelButton.addClickHandler(new ClickHandler() {
 			public void onClick(ClickEvent event) {
-				if (Window.confirm("Are you sure you want to cancel? Press OK to cancel."))
+				if (Window.confirm("Are you sure you want to unbook? Press OK to continue."))
 				{
 					UserInfoServiceAsync userService = GWT.create(UserInfoService.class);
 					userService.sendCancelConfirmation(flight, dateBox.getValue().toString(), 
@@ -542,7 +541,32 @@ public class AReS implements EntryPoint {
 					}
 				});
 	}
+	
+	private void setupFlightsTable()
+	{
+		flightsTable.setText(0, 0, "From");
+		flightsTable.setText(0, 1, "To");
+		flightsTable.setText(0, 2, "Price");
+		flightsTable.setText(0, 3, "Time");
+		flightsTable.setText(0, 4, "Class");
+		flightsTable.setText(0, 5, "Type");
+		flightsTable.getRowFormatter().addStyleName(0, "flightListHeader");
+		flightsTable.addStyleName("watchList");
+	}
 
+	private void setupFlightsSearchTable()
+	{
+		flightsTable.setText(0, 0, "From");
+		flightsTable.setText(0, 1, "To");
+		flightsTable.setText(0, 2, "Price");
+		flightsTable.setText(0, 3, "Time");
+		flightsTable.setText(0, 4, "Class");
+		flightsTable.setText(0, 5, "Type");
+		flightsTable.setText(0, 6, "Reserve");
+		flightsTable.getRowFormatter().addStyleName(0, "flightListHeader");
+		flightsTable.addStyleName("watchList");
+		flightsTable.setVisible(false);
+	}
 	private void handleError(Throwable error) 
 	{
 		Window.alert(error.getMessage());

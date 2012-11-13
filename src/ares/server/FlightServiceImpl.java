@@ -140,11 +140,22 @@ FlightService {
 	{
 		PersistenceManager pm = getPersistenceManager();
 		List<Flight> flights = new ArrayList<Flight>();
+		List<Flight> results = new ArrayList<Flight>();
 		try {
-			Query q = pm.newQuery(Flight.class, "location == loc && destination == dest " +
+			if (! seatClass.equals(""))
+			{
+				Query q = pm.newQuery(Flight.class, "location == loc && destination == dest " +
 					"&& seatClass == sc");
-			q.declareParameters("String loc, String dest, String sc");
-			List<Flight> results = (List<Flight>) q.execute(location, destination, seatClass);
+				q.declareParameters("String loc, String dest, String sc");
+				results = (List<Flight>) q.execute(location, destination, seatClass);
+			}
+			else
+			{
+				Query q = pm.newQuery(Flight.class, "location == loc && destination == dest");
+				q.declareParameters("String loc, String dest");
+				results = (List<Flight>) q.execute(location, destination);
+			}
+			
 			for (Flight f : results) 
 			{
 				f.getLocation();

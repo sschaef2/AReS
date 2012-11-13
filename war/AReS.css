@@ -3,6 +3,7 @@
 h1 {
   font-size: 2em;
   font-weight: bold;
+  letter-spacing: 1px;
   color: #777777;
   /*margin: 40px 0px 70px;*/
   text-align: center;
@@ -24,7 +25,7 @@ img {
   width: 400px;
 }
 
-.gwt-TextBox {
+.gwt-TextBox, .gwt-DateBox {
 	height: 12px;
     padding: 5px 4px;
     border-right: 1px solid rgb(204, 204, 204);
@@ -40,6 +41,12 @@ img {
     font-family: Arial Unicode MS,Arial,sans-serif;
 }
 
+ .helpLabel {
+ 	text-decoration: underline;
+ 	color: #006699; 
+ 	cursor: hand;
+ }
+ 
 .gwt-Label {
 	font-size: 16px;
 	font-weight: none;
@@ -70,10 +77,23 @@ body {
   border: 1px solid silver;
   padding: 2px;
   margin-bottom:6px;
+  div-align: center;
 }
 
-.searchLabels {
+.availLabel {
+	padding-top: 15px;	
+}
+
+.findButton {
+	padding: 10px;
+}
+
+.searchHeader {
 	padding-top: 10px;
+}
+
+.searchLabel {
+	padding-left: 4px;
 }
 
 .serverResponseLabelError {
